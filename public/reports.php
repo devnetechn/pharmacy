@@ -19,7 +19,7 @@ $export = ($_GET['export'] ?? '') === 'csv';
 // all drugs (for the picker)
 $allDrugs = $pdo->query('SELECT id, generic_name, brand_name, dosage_form, dosage FROM drugs ORDER BY generic_name')->fetchAll();
 
-// resolve which drugs to report on (full rows, incl. unit/description)
+// resolve which drugs to report on (full rows, incl. dosage_form/description)
 if ($all) {
     $reportDrugs = $pdo->query('SELECT * FROM drugs ORDER BY generic_name')->fetchAll();
 } elseif ($selectedIds) {
