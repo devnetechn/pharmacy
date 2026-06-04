@@ -10,6 +10,15 @@ $u = current_user();
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= htmlspecialchars($pageTitle ?? 'Pharmacy Stock Card') ?></title>
   <link rel="stylesheet" href="../assets/style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d6efd">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function(){});
+      });
+    }
+  </script>
 </head>
 <body>
 <header class="topbar">
