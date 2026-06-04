@@ -5,21 +5,29 @@ require __DIR__ . '/../config/db.php';
 require_login();
 check_csrf();
 
-$id = (int)($_POST['id'] ?? 0);
-$name = trim($_POST['name'] ?? '');
-$dosage = trim($_POST['dosage'] ?? '');
+$id          = (int)($_POST['id'] ?? 0);
+$generic     = trim($_POST['generic_name'] ?? '');
+$brand       = trim($_POST['brand_name'] ?? '');
+$dosageForm  = trim($_POST['dosage_form'] ?? '');
+// "Others" reveals a free-text field
+if ($dosageForm === '__other__') { $dosageForm = trim($_POST['dosage_form_other'] ?? ''); }
+$dosage      = trim($_POST['dosage'] ?? '');
 $description = trim($_POST['description'] ?? '');
-$unit = trim($_POST['unit'] ?? '');
-$reorder = max(0, (int)($_POST['reorder_level'] ?? 0));
+$reorder     = max(0, (int)($_POST['reorder_level'] ?? 0));
 
-if ($name === '') { http_response_code(400); die('Drug name is required.'); }
+$missing = [];
+if ($generic === '')    { $missing[] = 'Generic Name'; }
+if ($brand === '')      { $missing[] = 'Brand Name'; }
+if ($dosageForm === '') { $missing[] = 'Dosage Form'; }
+if ($dosage === '')     { $missing[] = 'Dosage'; }
+if ($missing) { http_response_code(400); die('Required: ' . implode(', ', $missing)); }
 
 if ($id > 0) {
-    $stmt = $pdo->prepare('UPDATE drugs SET name=?, dosage=?, description=?, unit=?, reorder_level=? WHERE id=?');
-    $stmt->execute([$name, $dosage, $description, $unit, $reorder, $id]);
+    $stmt = $pdo->prepare('UPDATE drugs SET generic_name=?, brand_name=?, dosage=?, description=?, dosage_form=?, reorder_level=? WHERE id=?');
+    $stmt->execute([$generic, $brand, $dosage, $description, $dosageForm, $reorder, $id]);
 } else {
-    $stmt = $pdo->prepare('INSERT INTO drugs (name, dosage, description, unit, reorder_level) VALUES (?,?,?,?,?)');
-    $stmt->execute([$name, $dosage, $description, $unit, $reorder]);
+    $stmt = $pdo->prepare('INSERT INTO drugs (generic_name, brand_name, dosage, description, dosage_form, reorder_level) VALUES (?,?,?,?,?,?)');
+    $stmt->execute([$generic, $brand, $dosage, $description, $dosageForm, $reorder]);
 }
 header('Location: drugs.php');
 exit;
