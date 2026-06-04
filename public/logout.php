@@ -1,0 +1,7 @@
+<?php
+// public/logout.php
+require __DIR__ . '/../includes/auth.php';
+$_SESSION = [];
+session_destroy();
+header('Location: login.php');
+exit;
