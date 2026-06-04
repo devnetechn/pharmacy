@@ -6,7 +6,7 @@ require __DIR__ . '/../includes/stock.php';
 require_login();
 
 // all drugs with current balance
-$drugs = $pdo->query('SELECT * FROM drugs ORDER BY name')->fetchAll();
+$drugs = $pdo->query('SELECT * FROM drugs ORDER BY generic_name')->fetchAll();
 $low = [];
 foreach ($drugs as $d) {
     $bal = current_balance($pdo, (int)$d['id']);
