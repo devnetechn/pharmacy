@@ -32,3 +32,20 @@ function current_balance(PDO $pdo, int $drugId): int {
     $row = $stmt->fetch();
     return $row ? (int)$row['balance'] : 0;
 }
+
+/**
+ * Human-readable drug label: "Generic (Brand) — Form Dosage".
+ * Returns RAW text — callers must htmlspecialchars() it.
+ * Brand / form / dosage are omitted when empty.
+ */
+function drug_label(array $d): string {
+    $label = (string)($d['generic_name'] ?? '');
+    if (!empty($d['brand_name'])) {
+        $label .= ' (' . $d['brand_name'] . ')';
+    }
+    $tail = trim(((string)($d['dosage_form'] ?? '')) . ' ' . ((string)($d['dosage'] ?? '')));
+    if ($tail !== '') {
+        $label .= ' — ' . $tail;
+    }
+    return $label;
+}
