@@ -25,12 +25,12 @@ $rows = $stmt->fetchAll();
 $balance = current_balance($pdo, $drugId);
 
 $flash = $_GET['err'] ?? '';
-$pageTitle = 'Stock Card — ' . $drug['name'];
+$pageTitle = 'Stock Card — ' . $drug['generic_name'];
 require __DIR__ . '/../includes/header.php';
 ?>
-<h1>Stock Card: <?= htmlspecialchars($drug['name']) ?><?= $drug['dosage'] ? ' ' . htmlspecialchars($drug['dosage']) : '' ?></h1>
-<p>Dosage: <?= htmlspecialchars($drug['dosage'] ?: '—') ?> |
-   Unit: <?= htmlspecialchars($drug['unit'] ?: '—') ?> |
+<h1>Stock Card: <?= htmlspecialchars(drug_label($drug)) ?></h1>
+<p>Dosage Form: <?= htmlspecialchars($drug['dosage_form'] ?: '—') ?> |
+   Dosage: <?= htmlspecialchars($drug['dosage'] ?: '—') ?> |
    Description: <?= htmlspecialchars($drug['description'] ?: '—') ?> |
    <strong>Current balance: <?= $balance ?></strong></p>
 <?php if ($flash): ?><div class="alert danger"><?= htmlspecialchars($flash) ?></div><?php endif; ?>
