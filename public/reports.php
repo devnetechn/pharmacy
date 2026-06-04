@@ -2,6 +2,7 @@
 // public/reports.php
 require __DIR__ . '/../includes/auth.php';
 require __DIR__ . '/../config/db.php';
+require __DIR__ . '/../includes/stock.php';
 require_login();
 
 // --- selection ---
@@ -16,14 +17,14 @@ $to = $_GET['to'] ?? '';
 $export = ($_GET['export'] ?? '') === 'csv';
 
 // all drugs (for the picker)
-$allDrugs = $pdo->query('SELECT id, name, dosage FROM drugs ORDER BY name')->fetchAll();
+$allDrugs = $pdo->query('SELECT id, generic_name, brand_name, dosage_form, dosage FROM drugs ORDER BY generic_name')->fetchAll();
 
 // resolve which drugs to report on (full rows, incl. unit/description)
 if ($all) {
-    $reportDrugs = $pdo->query('SELECT * FROM drugs ORDER BY name')->fetchAll();
+    $reportDrugs = $pdo->query('SELECT * FROM drugs ORDER BY generic_name')->fetchAll();
 } elseif ($selectedIds) {
     $place = implode(',', array_fill(0, count($selectedIds), '?'));
-    $stmt = $pdo->prepare("SELECT * FROM drugs WHERE id IN ($place) ORDER BY name");
+    $stmt = $pdo->prepare("SELECT * FROM drugs WHERE id IN ($place) ORDER BY generic_name");
     $stmt->execute($selectedIds);
     $reportDrugs = $stmt->fetchAll();
 } else {
@@ -47,11 +48,11 @@ if ($export && $reportDrugs) {
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="stockcard_report.csv"');
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['Drug','Dosage','Unit','Date','Type','Supplier','Cost','Quantity','Particulars','Balance','Remarks','By']);
+    fputcsv($out, ['Generic','Brand','Dosage Form','Dosage','Date','Type','Supplier','Cost','Quantity','Particulars','Balance','Remarks','By']);
     foreach ($reportDrugs as $drug) {
         foreach (fetch_tx($pdo, (int)$drug['id'], $from, $to) as $r) {
             fputcsv($out, [
-                $drug['name'], $drug['dosage'], $drug['unit'],
+                $drug['generic_name'], $drug['brand_name'], $drug['dosage_form'], $drug['dosage'],
                 $r['date'], $r['type'], $r['supplier'], $r['cost'], $r['quantity'],
                 $r['particulars'], $r['balance'], $r['remarks'], $r['full_name'],
             ]);
@@ -76,7 +77,7 @@ require __DIR__ . '/../includes/header.php';
     <?php foreach ($allDrugs as $d): $checked = in_array((int)$d['id'], $selectedIds, true); ?>
       <label class="chk">
         <input type="checkbox" name="drug_ids[]" value="<?= (int)$d['id'] ?>" <?= $checked ? 'checked' : '' ?>>
-        <?= htmlspecialchars($d['name']) ?><?= $d['dosage'] ? ' ' . htmlspecialchars($d['dosage']) : '' ?>
+        <?= htmlspecialchars(drug_label($d)) ?>
       </label>
     <?php endforeach; ?>
     <?php if (!$allDrugs): ?><span>No drugs yet.</span><?php endif; ?>
@@ -120,9 +121,9 @@ toggleAll();
 
   <?php foreach ($reportDrugs as $i => $drug): $rows = fetch_tx($pdo, (int)$drug['id'], $from, $to); ?>
     <section class="drug-section"<?= $i > 0 ? ' style="page-break-before:always;"' : '' ?>>
-      <h2>Drug: <?= htmlspecialchars($drug['name']) ?><?= $drug['dosage'] ? ' ' . htmlspecialchars($drug['dosage']) : '' ?></h2>
-      <p>Dosage: <?= htmlspecialchars($drug['dosage'] ?: '—') ?> |
-         Unit: <?= htmlspecialchars($drug['unit'] ?: '—') ?> |
+      <h2>Drug: <?= htmlspecialchars(drug_label($drug)) ?></h2>
+      <p>Dosage Form: <?= htmlspecialchars($drug['dosage_form'] ?: '—') ?> |
+         Dosage: <?= htmlspecialchars($drug['dosage'] ?: '—') ?> |
          Description: <?= htmlspecialchars($drug['description'] ?: '—') ?></p>
       <table>
         <tr><th>Date</th><th>Type</th><th>Supplier</th><th>Cost</th><th>Qty</th><th>Particulars</th><th>Balance</th><th>Remarks</th><th>By</th></tr>
